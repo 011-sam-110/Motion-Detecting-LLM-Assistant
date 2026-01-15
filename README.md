@@ -1,1 +1,1 @@
-run detectFace.py
+run main.py
