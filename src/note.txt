@@ -1,0 +1,2 @@
+if having import issues, use following:
+py -3.13 -m pip install openai

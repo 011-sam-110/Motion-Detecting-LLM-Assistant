@@ -1,0 +1,4 @@
+ollama pull llama3.1:8b
+ollama run llama3.1:8b   
+
+ollama create sentryAssistant -f Modelfile.txt

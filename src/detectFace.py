@@ -13,7 +13,7 @@ def detect_face():
     console_handler.setLevel(logging.DEBUG)  
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
-    
+
     CAMERA = 1
     webcam = cv2.VideoCapture(CAMERA)
 
@@ -34,8 +34,8 @@ def detect_face():
                 cv2.rectangle(gray, (x, y), (x+w, y+h), (255, 0, 0), 5)
             return True
 
-detect_face()
+
 #        cv2.imshow(f'', gray)
 #        if cv2.waitKey(1) == ord('q'):
 #            break
-#
+
