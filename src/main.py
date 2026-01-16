@@ -1,38 +1,41 @@
 #from src import speechToText
 import json
-import logging
-import subprocess
 import threading
 import time
+from datetime import datetime
 from email import message
 from queue import Queue
-import describeSetting
-import cv2
 
-#import llm
-#import llm
+import cv2
+from colorama import Fore, Style, init
+
+import describeSetting
 import newllm
 import textToSpeech
 from detectFace import detect_face
 from speechToText import runSpeechToText
 
-# Logger
-logger = logging.getLogger('logger')
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)  
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+# Initialize colorama (important on Windows)
+init(autoreset=True)
 
-# Logger
-logger = logging.getLogger('logger')
-logger.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.DEBUG)  
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
+#logs
+def log(message: str, level: str = "INFO", function_name: str = ""):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    colors = {
+        "INFO": Fore.CYAN,
+        "SUCCESS": Fore.GREEN,
+        "WARNING": Fore.YELLOW,
+        "ERROR": Fore.RED,
+        "DEBUG": Fore.MAGENTA,
+    }
+
+    color = colors.get(level.upper(), Fore.WHITE)
+    level = level.upper()
+
+    print(f"{Fore.WHITE}[{timestamp}] "
+          f"{color}[{level}]  [@{function_name}] "
+          f"{Style.RESET_ALL}{message}")
 
 # Config
 def getConfigSettings(settings : list):
@@ -41,14 +44,16 @@ def getConfigSettings(settings : list):
     with open("C:\\Users\\sampo\\OneDrive\\Desktop\\Python projects\\Motion Detection AI\\src\config.json") as file:
         config = json.load(file)
         for setting in settings:
-            print(setting)
             returnedSettings.append(config[setting])
 
     return returnedSettings
 
+log("Gathering LLM lifetime from config")
 LLM_LIFETIME = getConfigSettings(["LLM_LIFETIME"])
+log("Gathered LLM lifetime from config", "success")
 
 def take_photo(filename="src/photo.jpg", camera_index=0):
+    log(f"Opening camera, index {camera_index}", "info", "take_photo")
     cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)  # CAP_DSHOW = faster on Windows
 
     if not cap.isOpened():
@@ -62,12 +67,13 @@ def take_photo(filename="src/photo.jpg", camera_index=0):
 
     if not ret:
         raise RuntimeError("Failed to capture image")
-
+    
     cv2.imwrite(filename, frame)
+    log(f"Photo successfully saved as {filename}", "success", "take_photo")
     return filename
 
 def timer_():
-    
+    log("LLM lifetime timer started", "success", "timer")
     global stop_llm
 
     for i in range(LLM_LIFETIME[0]):
@@ -77,34 +83,32 @@ def timer_():
 
 
 def listen():
+    log("Running text to speech", "info", "listen")
     q = Queue()
     t = threading.Thread(target=runSpeechToText, args=(q,))  
     t.start()
     t.join()  
 
     result = q.get()
-    print(result)
+    log(f"Returning result: {result}", "Success", "listen")
     return result
 
 messageHistory = []
 def cleanMessage(message):
     messageHistory.append(f"USER:{message}")
     response = newllm.sendMessage(str(messageHistory))
-    print(response)
     return response
 
 
 def run():
     global stop_llm
     stop_llm = False
-    print("starting face detection")
+    
     detect_face()
-    logging.debug("face detection finished")
-    print("face detection finished")
+    
 
 #   Set lifetimer
     threading.Thread(target=timer_).start()
-    logging.debug("LLM lifetimer started")
 
 
     messageHistory.append("""SYSTEM: motion detected""")
@@ -118,17 +122,14 @@ def run():
     no_response_count = 0
     last_response_count = 0      
     while stop_llm is False:
-        print("beginning to listen")
         userResponse = listen()
         if userResponse is not None:
-            logging.debug(f"User response: {userResponse}")
 
             messageHistory.append(f'USER:{userResponse}')
             response = newllm.sendMessage(str(messageHistory)) #send to llm
             response = newllm.sendMessage(str(messageHistory)) #send to llm
             messageHistory.append(response)
 
-            print(response) #print llm response
             textToSpeech.run(response) #speak llm response
         
         elif userResponse is None:
@@ -141,14 +142,15 @@ def run():
                 textToSpeech.run(response)
                 messageHistory.append(response)
 
-                logging.debug("Sent inactivity report to LLM")
+                
                 last_response_count = no_response_count
-            logging.debug("returned none")
+            
     time.sleep(1)
 
 
-    logging.debug("LLM lifetimer ended")
+    
         
 
 while True:
+    log("Starting program", "info", "start")
     run()
