@@ -2,6 +2,7 @@
 from email import message
 import json
 import logging
+import logging
 import subprocess
 import threading
 import time
@@ -10,7 +11,22 @@ from queue import Queue
 import newllm
 import textToSpeech
 from detectFace import detect_face
+import time
+from queue import Queue
+#import llm
+import newllm
+import textToSpeech
+from detectFace import detect_face
 from speechToText import runSpeechToText
+
+# Logger
+logger = logging.getLogger('logger')
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)  
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 # Logger
 logger = logging.getLogger('logger')
@@ -69,6 +85,8 @@ def run():
     stop_llm = False
     print("starting face detection")
     detect_face()
+    print("starting face detection")
+    detect_face()
     logging.debug("face detection finished")
     print("face detection finished")
 
@@ -79,6 +97,7 @@ def run():
 
     messageHistory.append("""SYSTEM: motion detected""")
 
+    response = newllm.sendMessage(str(messageHistory))
     response = newllm.sendMessage(str(messageHistory))
     messageHistory.append(f"AGENT:{response}")
 
@@ -93,6 +112,7 @@ def run():
             logging.debug(f"User response: {userResponse}")
 
             messageHistory.append(f'USER:{userResponse}')
+            response = newllm.sendMessage(str(messageHistory)) #send to llm
             response = newllm.sendMessage(str(messageHistory)) #send to llm
             messageHistory.append(response)
 
@@ -115,6 +135,9 @@ def run():
 
     logging.debug("LLM lifetimer ended")
         
+
+while True:
+    run()
 
 while True:
     run()

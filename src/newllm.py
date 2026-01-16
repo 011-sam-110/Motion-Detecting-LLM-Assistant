@@ -160,6 +160,10 @@ def sendMessage(message: str) -> str:
     # Access content as an attribute, not a dict
     assistant_message = response.choices[0].message.content
     
+<<<<<<< HEAD
     conversation2.append({"role": "assistant", "content": assistant_message})
+=======
+    conversation.append({"role": "assistant", "content": assistant_message})
+>>>>>>> e7fdc7d830628fdaff9933a47fd6885a027529de
     
     return assistant_message
