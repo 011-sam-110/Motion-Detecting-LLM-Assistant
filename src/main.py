@@ -1,18 +1,15 @@
 #from src import speechToText
-from email import message
 import json
-import logging
 import logging
 import subprocess
 import threading
 import time
+from email import message
 from queue import Queue
+import describeSetting
+import cv2
+
 #import llm
-import newllm
-import textToSpeech
-from detectFace import detect_face
-import time
-from queue import Queue
 #import llm
 import newllm
 import textToSpeech
@@ -41,7 +38,7 @@ logger.addHandler(console_handler)
 def getConfigSettings(settings : list):
     """"""
     returnedSettings = []
-    with open("config.json") as file:
+    with open("C:\\Users\\sampo\\OneDrive\\Desktop\\Python projects\\Motion Detection AI\\src\config.json") as file:
         config = json.load(file)
         for setting in settings:
             print(setting)
@@ -50,6 +47,24 @@ def getConfigSettings(settings : list):
     return returnedSettings
 
 LLM_LIFETIME = getConfigSettings(["LLM_LIFETIME"])
+
+def take_photo(filename="src/photo.jpg", camera_index=0):
+    cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)  # CAP_DSHOW = faster on Windows
+
+    if not cap.isOpened():
+        raise RuntimeError("Could not open webcam")
+
+    # Warm up camera very briefly (improves exposure)
+    time.sleep(0.1)
+
+    ret, frame = cap.read()
+    cap.release()
+
+    if not ret:
+        raise RuntimeError("Failed to capture image")
+
+    cv2.imwrite(filename, frame)
+    return filename
 
 def timer_():
     
@@ -119,7 +134,9 @@ def run():
         elif userResponse is None:
             no_response_count = no_response_count + 1
             if no_response_count - last_response_count > 1:
-                messageHistory.append("SYSTEM: user is ignoring you")
+                photoname = take_photo()
+                room_description = describeSetting.describe_setting(photoname)
+                messageHistory.append(f"SYSTEM: the user is ignoring you. Description of room: {room_description}")
                 response = newllm.sendMessage(str(messageHistory))
                 textToSpeech.run(response)
                 messageHistory.append(response)

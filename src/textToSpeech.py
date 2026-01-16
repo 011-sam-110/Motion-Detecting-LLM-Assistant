@@ -7,6 +7,9 @@ import time
 import re
 import json
 
+from dotenv import load_dotenv
+load_dotenv()
+
 def getConfigSettings(settings : list):
     """"""
     returnedSettings = []
@@ -32,9 +35,9 @@ def split_stage_direction(text: str):
         # No asterisks found, return None for stage direction
         return None, text.strip()
 
-api_key, _ = getConfigSettings(["API_KEY", "LLM_TALK_SPEED"])  # comma unpacks single element list
-os.environ["OPENAI_API_KEY"] = api_key
-print(os.environ["OPENAI_API_KEY"])
+  # comma unpacks single element list
+
+
 
 def run(text_to_speak):
     if type(text_to_speak) == str:

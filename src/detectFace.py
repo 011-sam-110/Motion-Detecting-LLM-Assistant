@@ -7,7 +7,7 @@ import json
 def getConfigSettings(settings : list):
     """"""
     returnedSettings = []
-    with open("config.json") as file:
+    with open("C:\\Users\\sampo\\OneDrive\\Desktop\\Python projects\\Motion Detection AI\\src\\config.json") as file:
         config = json.load(file)
         for setting in settings:
             returnedSettings.append(config[setting])
