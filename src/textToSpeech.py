@@ -5,7 +5,6 @@ import simpleaudio as sa
 import vlc
 import time
 import re
-<<<<<<< HEAD
 import json
 
 def getConfigSettings(settings : list):
@@ -17,8 +16,6 @@ def getConfigSettings(settings : list):
             returnedSettings.append(config[setting])
 
     return returnedSettings
-=======
->>>>>>> e7fdc7d830628fdaff9933a47fd6885a027529de
 
 def split_stage_direction(text: str):
     """
@@ -37,16 +34,11 @@ def split_stage_direction(text: str):
 
 def run(text_to_speak):
     if type(text_to_speak) == str:
-<<<<<<< HEAD
-    
+        
+        
         client = OpenAI()  # The client now picks up the key from the environment
+        client.api_key = getConfigSettings["API_KEY"]
         speech_file_path = "speech.wav"
-=======
-        os.environ["OPENAI_API_KEY"] = ""
-    
-        client = OpenAI()  # The client now picks up the key from the environment
-        speech_file_path = "C:\\Users\\sampo\\Downloads\\OpenCV Things\\src\\speech.wav"
->>>>>>> e7fdc7d830628fdaff9933a47fd6885a027529de
     
         instructions, clean_text = split_stage_direction(text_to_speak)
         print(f'INSTRUCT: {instructions} {clean_text}')

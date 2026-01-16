@@ -1,3 +1,4 @@
+from charset_normalizer import detect
 import cv2
 import logging
 import random
@@ -32,14 +33,13 @@ def detect_face():
         for each in COMBINED_CAMERA_DIGITS:
             cameraDigits.append(each)
         CAMERA = random.choice(cameraDigits[0])
+        CAMERA = int(CAMERA)
     else:
 #       Type validation
         CAMERA = getConfigSettings(["CAMERA_DIGITS"])
         if type(CAMERA) is not int:
             CAMERA = 0 
-    print(f"CAMERA: {CAMERA}")
-    webcam = cv2.VideoCapture(CAMERA)
-
+    webcam = cv2.VideoCapture(1, cv2.CAP_DSHOW)
     trained_face_data = cv2.CascadeClassifier(
     cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     
@@ -58,7 +58,7 @@ def detect_face():
             return True
 
 
-
+detect_face()
 #        cv2.imshow(f'', gray)
 #        if cv2.waitKey(1) == ord('q'):
 #            break

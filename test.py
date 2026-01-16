@@ -1,18 +1,22 @@
-import json
+import cv2
 
-def getConfigSettings(settings : list):
-    """"""
-    returnedSettings = []
-    with open("src\\config.json") as file:
-        config = json.load(file)
-        for setting in settings:
+def list_available_cameras(max_index=10):
+    available = []
 
-            returnedSettings.append(config[setting])
+    for i in range(max_index):
+        cap = cv2.VideoCapture(i, cv2.CAP_DSHOW)  # CAP_DSHOW helps on Windows
+        if cap.isOpened():
+            ret, frame = cap.read()
+            if ret and frame is not None:
+                available.append(i)
+                print(f"✅ Camera index {i} is available")
+            cap.release()
+        else:
+            cap.release()
 
-    return returnedSettings
+    if not available:
+        print("❌ No cameras found")
+    return available
 
-one = getConfigSettings(["CAMERA_DIGITS"])
 
-for each in one[0]:
-    print(each)
-            
+list_available_cameras()

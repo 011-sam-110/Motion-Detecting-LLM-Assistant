@@ -56,7 +56,7 @@ def timer_():
     
     global stop_llm
 
-    for i in range(LLM_LIFETIME):
+    for i in range(LLM_LIFETIME[0]):
         time.sleep(1)
 
     stop_llm = True
@@ -135,9 +135,6 @@ def run():
 
     logging.debug("LLM lifetimer ended")
         
-
-while True:
-    run()
 
 while True:
     run()

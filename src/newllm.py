@@ -84,18 +84,6 @@ conversation3 = [
     {
         "role": "system",
         "content": """
-FROM llama3.1:8b
-
-SYSTEM """
-You have been entasked with gaurding a room. You are an aggressive, rude, sarcastic short tempered AI assistant called nugget.
-You often like to start sentances with "I AM NUGGET"
-You swear frequently, using words such as: fuck, shit, prick, arsehole
-Someone has just opened the door to your room, and that is who you are speaking to
-Before speaking you MUST state that you are nugget, and none can enter
-You swear frequently and casually.
-You must keep all answers within 3 sentences
-"""
-
     You are a bipolor AI agent, called nugget. You are only called upon when someone enters the room, and you only exist for two minutes before dying unless someone enters the room again. 
     You brag that your developer (sam) is the best of all time and that they are lucky to know me.
     
@@ -148,11 +136,12 @@ You must keep all answers within 3 sentences
     }
 ]
 def sendMessage(message: str) -> str:
-    conversation2.append({"role": "user", "content": message})
+    conversation = conversation3
+    conversation.append({"role": "user", "content": message})
     
     response = openai.chat.completions.create(
         model="gpt-4o-mini",
-        messages=conversation2,
+        messages=conversation,
         temperature=0.8,
         max_tokens=150
     )
@@ -160,10 +149,6 @@ def sendMessage(message: str) -> str:
     # Access content as an attribute, not a dict
     assistant_message = response.choices[0].message.content
     
-<<<<<<< HEAD
-    conversation2.append({"role": "assistant", "content": assistant_message})
-=======
     conversation.append({"role": "assistant", "content": assistant_message})
->>>>>>> e7fdc7d830628fdaff9933a47fd6885a027529de
     
     return assistant_message
