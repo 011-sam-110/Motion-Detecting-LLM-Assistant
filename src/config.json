@@ -1,8 +1,0 @@
-{
-    "API_KEY": "",
-    "LLM_LIFETIME": 120,
-    "LLM_PROMPT_PATH": "Not a thing",
-    "LLM_TALK_SPEED": 1,
-    "MULTIPLE_CAMERAS": false,
-    "CAMERA_DIGITS": [0]  
-}
