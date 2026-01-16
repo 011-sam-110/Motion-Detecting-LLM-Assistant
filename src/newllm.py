@@ -12,8 +12,8 @@ def getConfigSettings(settings : list):
 
     return returnedSettings
 
-openai.api_key, llm_prompt_path = getConfigSettings(["API_KEY", "LLM_PROMPT_PATH"])
-
+api_key, llm_prompt_path = getConfigSettings(["API_KEY", "LLM_PROMPT_PATH"])
+os.environ["OPENAI_API_KEY"] = api_key
 # Persistent conversation
 conversation1 = [
     {

@@ -58,7 +58,6 @@ def detect_face():
             return True
 
 
-detect_face()
 #        cv2.imshow(f'', gray)
 #        if cv2.waitKey(1) == ord('q'):
 #            break

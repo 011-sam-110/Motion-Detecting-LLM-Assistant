@@ -38,7 +38,6 @@ console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
 # Config
-LLM_LIFETIME = 60 * 2
 def getConfigSettings(settings : list):
     """"""
     returnedSettings = []
@@ -83,8 +82,6 @@ def cleanMessage(message):
 def run():
     global stop_llm
     stop_llm = False
-    print("starting face detection")
-    detect_face()
     print("starting face detection")
     detect_face()
     logging.debug("face detection finished")

@@ -32,12 +32,15 @@ def split_stage_direction(text: str):
         # No asterisks found, return None for stage direction
         return None, text.strip()
 
+api_key, _ = getConfigSettings(["API_KEY", "LLM_TALK_SPEED"])  # comma unpacks single element list
+os.environ["OPENAI_API_KEY"] = api_key
+print(os.environ["OPENAI_API_KEY"])
+
 def run(text_to_speak):
     if type(text_to_speak) == str:
         
         
         client = OpenAI()  # The client now picks up the key from the environment
-        client.api_key = getConfigSettings["API_KEY"]
         speech_file_path = "speech.wav"
     
         instructions, clean_text = split_stage_direction(text_to_speak)
