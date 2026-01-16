@@ -27,8 +27,8 @@ def log(message: str, level: str = "INFO", function_name: str = ""):
         "SUCCESS": Fore.GREEN,
         "AGENT": Fore.YELLOW,
         "USER" : Fore.LIGHTYELLOW_EX,
-        "ERROR": Fore.RED,
-        "DEBUG": Fore.MAGENTA,
+        "WARN": Fore.RED,
+        "SYSTEM": Fore.MAGENTA, 
     }
 
     color = colors.get(level.upper(), Fore.WHITE)
@@ -143,7 +143,7 @@ def main():
 #       If no audio input
         elif userResponse is None:
             no_response_count = no_response_count + 1
-            log(f"No detected audio input #{no_response_count-last_response_count}", "info", "main")
+            log(f"No detected audio input #{no_response_count-last_response_count}", "warn", "main")
 
             if no_response_count - last_response_count > 1:
 
@@ -152,8 +152,11 @@ def main():
                 room_description = describeSetting.describe_setting(photoname)
 
 #               Prompt AI with room description
+
                 messageHistory.append(f"SYSTEM: the user is ignoring you. Description of room: {room_description}")
+                log(room_description, "system", "main")
                 log("Prompting AI with room description", "info", "main")
+                
 #               Save agent response and play it outloud
                 response = newllm.sendMessage(str(messageHistory))
                 textToSpeech.run(response)
