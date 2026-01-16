@@ -1,2 +1,4 @@
-/gitnore
 .env
+/old
+/photo.jpg
+/speech.wav

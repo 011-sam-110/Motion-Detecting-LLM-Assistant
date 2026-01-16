@@ -39,7 +39,9 @@ def detect_face():
         CAMERA = getConfigSettings(["CAMERA_DIGITS"])
         if type(CAMERA) is not int:
             CAMERA = 0 
-    webcam = cv2.VideoCapture(1, cv2.CAP_DSHOW)
+    
+    mycodelies = 1
+    webcam = cv2.VideoCapture(mycodelies, cv2.CAP_DSHOW)
     trained_face_data = cv2.CascadeClassifier(
     cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     
