@@ -1,9 +1,34 @@
-from charset_normalizer import detect
-import cv2
-import logging
-import random
-import json
 
+import json
+import random
+from datetime import datetime
+
+import cv2
+from colorama import Fore, Style, init
+
+# Initialize colorama
+init(autoreset=True)
+
+# Logs
+def log(message: str, level: str = "INFO", function_name: str = ""):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    colors = {
+        "INFO": Fore.CYAN,
+        "SUCCESS": Fore.GREEN,
+        "WARNING": Fore.YELLOW,
+        "ERROR": Fore.RED,
+        "DEBUG": Fore.MAGENTA,
+    }
+
+    color = colors.get(level.upper(), Fore.WHITE)
+    level = level.upper()
+
+    print(f"{Fore.WHITE}[{timestamp}] "
+          f"{color}[{level}]  [@{function_name}] "
+          f"{Style.RESET_ALL}{message}")
+    
+# Config
 def getConfigSettings(settings : list):
     """"""
     returnedSettings = []
@@ -15,16 +40,7 @@ def getConfigSettings(settings : list):
     return returnedSettings
 
 def detect_face():
-    print("started")
-
-#   Logger
-    logger = logging.getLogger('logger')
-    logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console_handler = logging.StreamHandler()
-    console_handler.setLevel(logging.DEBUG)  
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
+    log("Running facial detection script", "info", "detect_face.py")
 
 #   CAMERA CONFIG
     if getConfigSettings(["MULTIPLE_CAMERAS"]):
@@ -57,6 +73,7 @@ def detect_face():
         if len(face_coordinates) > 0:
             for (x, y, w, h) in face_coordinates:
                 cv2.rectangle(gray, (x, y), (x+w, y+h), (255, 0, 0), 5)
+            log("Face detected, script terminating", "success", "DetectFace.py")
             return True
 
 

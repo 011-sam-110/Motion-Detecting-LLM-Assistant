@@ -15,17 +15,18 @@ import textToSpeech
 from detectFace import detect_face
 from speechToText import runSpeechToText
 
-# Initialize colorama (important on Windows)
+# Initialize colorama
 init(autoreset=True)
 
-#logs
+# Logs
 def log(message: str, level: str = "INFO", function_name: str = ""):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     colors = {
         "INFO": Fore.CYAN,
         "SUCCESS": Fore.GREEN,
-        "WARNING": Fore.YELLOW,
+        "AGENT": Fore.YELLOW,
+        "USER" : Fore.LIGHTYELLOW_EX,
         "ERROR": Fore.RED,
         "DEBUG": Fore.MAGENTA,
     }
@@ -41,7 +42,7 @@ def log(message: str, level: str = "INFO", function_name: str = ""):
 def getConfigSettings(settings : list):
     """"""
     returnedSettings = []
-    with open("C:\\Users\\sampo\\OneDrive\\Desktop\\Python projects\\Motion Detection AI\\src\config.json") as file:
+    with open("C:\\Users\\sampo\\OneDrive\\Desktop\\Python projects\\Motion Detection AI\\src\\config.json") as file:
         config = json.load(file)
         for setting in settings:
             returnedSettings.append(config[setting])
@@ -53,13 +54,13 @@ LLM_LIFETIME = getConfigSettings(["LLM_LIFETIME"])
 log("Gathered LLM lifetime from config", "success")
 
 def take_photo(filename="src/photo.jpg", camera_index=0):
-    log(f"Opening camera, index {camera_index}", "info", "take_photo")
-    cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)  # CAP_DSHOW = faster on Windows
+    log(f"Opening camera, index {camera_index}", "info", "main/take_photo")
+    cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW) 
 
     if not cap.isOpened():
         raise RuntimeError("Could not open webcam")
 
-    # Warm up camera very briefly (improves exposure)
+    # Warm up camera very briefly 
     time.sleep(0.1)
 
     ret, frame = cap.read()
@@ -69,11 +70,11 @@ def take_photo(filename="src/photo.jpg", camera_index=0):
         raise RuntimeError("Failed to capture image")
     
     cv2.imwrite(filename, frame)
-    log(f"Photo successfully saved as {filename}", "success", "take_photo")
+    log(f"Photo successfully saved as {filename}", "success", "main/take_photo")
     return filename
 
 def timer_():
-    log("LLM lifetime timer started", "success", "timer")
+    log("LLM lifetime timer started", "success", "main/timer")
     global stop_llm
 
     for i in range(LLM_LIFETIME[0]):
@@ -83,14 +84,14 @@ def timer_():
 
 
 def listen():
-    log("Running text to speech", "info", "listen")
+    log("Running text to speech", "info", "main/listen")
     q = Queue()
     t = threading.Thread(target=runSpeechToText, args=(q,))  
     t.start()
     t.join()  
 
     result = q.get()
-    log(f"Returning result: {result}", "Success", "listen")
+    log(f"{result}", "user", "main/listen")
     return result
 
 messageHistory = []
@@ -100,44 +101,60 @@ def cleanMessage(message):
     return response
 
 
-def run():
+def main():
     global stop_llm
+
+#   Define variables
     stop_llm = False
-    
+    no_response_count = 0
+    last_response_count = 0
+
+#   Start detect face
     detect_face()
-    
 
 #   Set lifetimer
     threading.Thread(target=timer_).start()
 
-
+#   Trigger LLM for first time
     messageHistory.append("""SYSTEM: motion detected""")
+    response = newllm.sendMessage(str(messageHistory))
 
-    response = newllm.sendMessage(str(messageHistory))
-    response = newllm.sendMessage(str(messageHistory))
+    #Save agent response
     messageHistory.append(f"AGENT:{response}")
 
+    #Play agent response
     textToSpeech.run(response)
 
-    no_response_count = 0
-    last_response_count = 0      
+      
     while stop_llm is False:
         userResponse = listen()
+
+#       If we get audio input
         if userResponse is not None:
 
+            #Send user input to LLM and save to message history
             messageHistory.append(f'USER:{userResponse}')
-            response = newllm.sendMessage(str(messageHistory)) #send to llm
-            response = newllm.sendMessage(str(messageHistory)) #send to llm
+            response = newllm.sendMessage(str(messageHistory)) 
             messageHistory.append(response)
 
-            textToSpeech.run(response) #speak llm response
+#           Speak llm response
+            textToSpeech.run(response) 
         
+#       If no audio input
         elif userResponse is None:
             no_response_count = no_response_count + 1
+            log(f"No detected audio input #{no_response_count-last_response_count}", "info", "main")
+
             if no_response_count - last_response_count > 1:
+
+#               Get room description
                 photoname = take_photo()
                 room_description = describeSetting.describe_setting(photoname)
+
+#               Prompt AI with room description
                 messageHistory.append(f"SYSTEM: the user is ignoring you. Description of room: {room_description}")
+                log("Prompting AI with room description", "info", "main")
+#               Save agent response and play it outloud
                 response = newllm.sendMessage(str(messageHistory))
                 textToSpeech.run(response)
                 messageHistory.append(response)
@@ -147,10 +164,6 @@ def run():
             
     time.sleep(1)
 
-
-    
-        
-
 while True:
-    log("Starting program", "info", "start")
-    run()
+    log("Starting program", "info", "main")
+    main()

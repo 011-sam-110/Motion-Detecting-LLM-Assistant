@@ -1,14 +1,36 @@
 
+import json
 import os
-from openai import OpenAI
+import re
+import time
+from datetime import datetime
+
 import simpleaudio as sa
 import vlc
-import time
-import re
-import json
-
+from colorama import Fore, Style, init
 from dotenv import load_dotenv
+from openai import OpenAI
+
 load_dotenv()
+
+# Logs
+def log(message: str, level: str = "INFO", function_name: str = ""):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    colors = {
+        "INFO": Fore.CYAN,
+        "SUCCESS": Fore.GREEN,
+        "AGENT": Fore.YELLOW,
+        "ERROR": Fore.RED,
+        "DEBUG": Fore.MAGENTA,
+    }
+
+    color = colors.get(level.upper(), Fore.WHITE)
+    level = level.upper()
+
+    print(f"{Fore.WHITE}[{timestamp}] "
+          f"{color}[{level}]  [@{function_name}] "
+          f"{Style.RESET_ALL}{message}")
 
 def getConfigSettings(settings : list):
     """"""
@@ -46,15 +68,15 @@ def run(text_to_speak):
         client = OpenAI()  # The client now picks up the key from the environment
         speech_file_path = "speech.wav"
     
-        instructions, clean_text = split_stage_direction(text_to_speak)
-        print(f'INSTRUCT: {instructions} {clean_text}')
+        given_instructions, clean_text = split_stage_direction(text_to_speak)
+        log(f"{text_to_speak}", "AGENT", "TextToSpeech/run")
     
     
         with client.audio.speech.with_streaming_response.create(
             model="gpt-4o-mini-tts",
-            voice="onyx",
+            voice="coral",
             input=clean_text,
-            instructions=instructions
+            instructions=f"Speak in a {given_instructions} tone"
         ) as response:
             response.stream_to_file(speech_file_path)
     
