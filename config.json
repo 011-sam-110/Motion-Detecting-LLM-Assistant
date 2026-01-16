@@ -1,5 +1,5 @@
 {
-    "API_KEY": "WXUnQ1BAZVtnq7KZYEmwN2aePJZlAKNHfbFebmtKzNQszwsB2dyWM5gYFElsd5rEr0X9xfVoYRT3BlbkFJJwE6AMmEsSQ_oHPjWi",
+    "API_KEY": "",
     "LLM_LIFETIME": 120,
     "LLM_PROMPT_PATH": "Not a thing",
     "LLM_TALK_SPEED": 1,
