@@ -3,9 +3,14 @@ import speech_recognition as sr
 import logging
 from queue import Queue
 
-logging.basicConfig(filename='test.log', level=logging.DEBUG,
-                    format='%(asctime)s:%(levelname)s:%(message)s')
-
+# Logger
+logger = logging.getLogger('logger')
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)  
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 class SpeechToText:
     def __init__(self, language='en-US'):
@@ -41,7 +46,7 @@ class SpeechToText:
 
 def runSpeechToText(q: Queue): #returns if anything is gathered
     stt = SpeechToText()
-    
+    print("at run speech to text")
     text = stt.listen_from_mic()
     if text:
         q.put(text)

@@ -1,35 +1,43 @@
 #from src import speechToText
+from email import message
 import json
-import subprocess
 import logging
-import time
+import subprocess
 import threading
-import pyttsx3
-import llm
-from speechToText import runSpeechToText
+import time
 from queue import Queue
+#import llm
+import newllm
+import textToSpeech
+from detectFace import detect_face
+from speechToText import runSpeechToText
 
-
-
-
-
-
-logging.basicConfig(filename='test.log', level=logging.DEBUG,
-                    format='%(asctime)s:%(levelname)s:%(message)s')
-
-
-
+# Logger
+logger = logging.getLogger('logger')
+logger.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.DEBUG)  
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 
 # Config
-JSON_PATH = 'C:\\Users\\sampo\\Downloads\\OpenCV Things\\detectFace.py'
-LLM_LIFETIME = 60 * 5
+LLM_LIFETIME = 60 * 2
+def getConfigSettings(settings : list):
+    """"""
+    returnedSettings = []
+    with open("config.json") as file:
+        config = json.load(file)
+        for setting in settings:
+            print(setting)
+            returnedSettings.append(config[setting])
 
-audio_lock = threading.Lock()
-engine = pyttsx3.init()
-engine.setProperty('rate', 200)  # speed
-engine.setProperty('volume', 1.0)  # volume 0-1
+    return returnedSettings
+
+LLM_LIFETIME = getConfigSettings(["LLM_LIFETIME"])
 
 def timer_():
+    
     global stop_llm
 
     for i in range(LLM_LIFETIME):
@@ -38,55 +46,11 @@ def timer_():
     stop_llm = True
 
 
-def readJson():
-    time.sleep(.5)
-    try:
-        with open(JSON_PATH) as file:
-            data = json.load(file)
-            return data["activated"]
-    except Exception as e:
-        return False
-
-
-def updateJson(setting: bool):
-
-    data = {"activated": setting}
-
-    with open(JSON_PATH, 'w') as file:
-        json.dump(data, file)
-
-
-# Kill face detection
-def killFaceDetection():
-    global detectFace
-
-    detectFace.terminate()
-    detectFace.wait()
-    detectFace = None
-
-def startFaceDetection():
-    global detectFace
-
-    # Start face detection
-    detectFace = subprocess.Popen(["Python", "detectFace.py"])
-
-    while True:
-        if readJson() == True:
-            killFaceDetection()
-            updateJson(False)
-            break
-
-def speak(text):
-    with audio_lock:
-        engine.say(text)
-        engine.runAndWait()
-
 def listen():
-    with audio_lock:
-        q = Queue()
-        t = threading.Thread(target=runSpeechToText, args=(q,))  
-        t.start()
-        t.join()  
+    q = Queue()
+    t = threading.Thread(target=runSpeechToText, args=(q,))  
+    t.start()
+    t.join()  
 
     result = q.get()
     print(result)
@@ -95,7 +59,7 @@ def listen():
 messageHistory = []
 def cleanMessage(message):
     messageHistory.append(f"USER:{message}")
-    response = llm.sendMessage(str(messageHistory))
+    response = newllm.sendMessage(str(messageHistory))
     print(response)
     return response
 
@@ -103,8 +67,8 @@ def cleanMessage(message):
 def run():
     global stop_llm
     stop_llm = False
-
-    startFaceDetection()
+    print("starting face detection")
+    detect_face()
     logging.debug("face detection finished")
     print("face detection finished")
 
@@ -113,34 +77,44 @@ def run():
     logging.debug("LLM lifetimer started")
 
 
-    messageHistory.append("""SYSTEM: Someone has
-                          entered the room. Who
-                          are they? What are they
-                          doing here? Who the fuck
-                          do you they think they are?""")
+    messageHistory.append("""SYSTEM: motion detected""")
 
-    response = llm.sendMessage(str(messageHistory))
+    response = newllm.sendMessage(str(messageHistory))
     messageHistory.append(f"AGENT:{response}")
 
-    print(response)
-          
-    while stop_llm is not False:
+    textToSpeech.run(response)
 
+    no_response_count = 0
+    last_response_count = 0      
+    while stop_llm is False:
+        print("beginning to listen")
         userResponse = listen()
         if userResponse is not None:
             logging.debug(f"User response: {userResponse}")
 
             messageHistory.append(f'USER:{userResponse}')
-            response = llm.sendMessage(str(messageHistory)) #send to llm
+            response = newllm.sendMessage(str(messageHistory)) #send to llm
             messageHistory.append(response)
 
             print(response) #print llm response
-            speak(response) #speak llm response
-        else:
+            textToSpeech.run(response) #speak llm response
+        
+        elif userResponse is None:
+            no_response_count = no_response_count + 1
+            if no_response_count - last_response_count > 1:
+                messageHistory.append("SYSTEM: user is ignoring you")
+                response = newllm.sendMessage(str(messageHistory))
+                textToSpeech.run(response)
+                messageHistory.append(response)
+
+                logging.debug("Sent inactivity report to LLM")
+                last_response_count = no_response_count
             logging.debug("returned none")
     time.sleep(1)
 
 
     logging.debug("LLM lifetimer ended")
         
-run()
+
+while True:
+    run()

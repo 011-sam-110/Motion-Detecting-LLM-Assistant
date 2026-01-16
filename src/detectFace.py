@@ -1,6 +1,17 @@
 import cv2
 import logging
+import random
+import json
 
+def getConfigSettings(settings : list):
+    """"""
+    returnedSettings = []
+    with open("config.json") as file:
+        config = json.load(file)
+        for setting in settings:
+            returnedSettings.append(config[setting])
+
+    return returnedSettings
 
 def detect_face():
     print("started")
@@ -13,8 +24,20 @@ def detect_face():
     console_handler.setLevel(logging.DEBUG)  
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
-    
-    CAMERA = 1
+
+#   CAMERA CONFIG
+    if getConfigSettings(["MULTIPLE_CAMERAS"]):
+        cameraDigits = []
+        COMBINED_CAMERA_DIGITS = getConfigSettings(["CAMERA_DIGITS"])
+        for each in COMBINED_CAMERA_DIGITS:
+            cameraDigits.append(each)
+        CAMERA = random.choice(cameraDigits[0])
+    else:
+#       Type validation
+        CAMERA = getConfigSettings(["CAMERA_DIGITS"])
+        if type(CAMERA) is not int:
+            CAMERA = 0 
+    print(f"CAMERA: {CAMERA}")
     webcam = cv2.VideoCapture(CAMERA)
 
     trained_face_data = cv2.CascadeClassifier(
@@ -34,8 +57,8 @@ def detect_face():
                 cv2.rectangle(gray, (x, y), (x+w, y+h), (255, 0, 0), 5)
             return True
 
-detect_face()
+
 #        cv2.imshow(f'', gray)
 #        if cv2.waitKey(1) == ord('q'):
 #            break
-#
+

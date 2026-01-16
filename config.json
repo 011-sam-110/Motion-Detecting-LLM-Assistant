@@ -1,0 +1,8 @@
+{
+    "API_KEY": "WXUnQ1BAZVtnq7KZYEmwN2aePJZlAKNHfbFebmtKzNQszwsB2dyWM5gYFElsd5rEr0X9xfVoYRT3BlbkFJJwE6AMmEsSQ_oHPjWi",
+    "LLM_LIFETIME": 120,
+    "LLM_PROMPT_PATH": "Not a thing",
+    "LLM_TALK_SPEED": 1,
+    "MULTIPLE_CAMERAS": true,
+    "CAMERA_DIGITS": [0,1]  
+}
