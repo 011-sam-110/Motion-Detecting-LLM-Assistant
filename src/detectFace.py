@@ -54,7 +54,7 @@ def detect_face():
 #       Type validation
         CAMERA = getConfigSettings(["CAMERA_DIGITS"])
         if type(CAMERA) is not int:
-            CAMERA = 0 
+            CAMERA = 1
     
     mycodelies = 1
     webcam = cv2.VideoCapture(mycodelies, cv2.CAP_DSHOW)

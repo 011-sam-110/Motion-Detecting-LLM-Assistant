@@ -53,7 +53,7 @@ log("Gathering LLM lifetime from config")
 LLM_LIFETIME = getConfigSettings(["LLM_LIFETIME"])
 log("Gathered LLM lifetime from config", "success")
 
-def take_photo(filename="src/photo.jpg", camera_index=0):
+def take_photo(filename="src/photo.jpg", camera_index=1):
     log(f"Opening camera, index {camera_index}", "info", "main/take_photo")
     cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW) 
 
@@ -156,8 +156,8 @@ def main():
                 messageHistory.append(f"SYSTEM: the user is ignoring you. Description of room: {room_description}")
                 log(room_description, "system", "main")
                 log("Prompting AI with room description", "info", "main")
-                
-#               Save agent response and play it outloud
+
+#               Save agent response and905207play it outloud
                 response = newllm.sendMessage(str(messageHistory))
                 textToSpeech.run(response)
                 messageHistory.append(response)
@@ -168,5 +168,11 @@ def main():
     time.sleep(1)
 
 while True:
-    log("Starting program", "info", "main")
-    main()
+    try:
+        log("Starting program", "info", "main")
+        main()
+    except Exception as e:
+        print("\n"*15)
+        print("-----------------")
+        log(f"Error: {e}")
+        print("-----------------")

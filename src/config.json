@@ -3,6 +3,6 @@
     "LLM_LIFETIME": 300,
     "LLM_PROMPT_PATH": "Not a thing",
     "LLM_TALK_SPEED": 1,
-    "MULTIPLE_CAMERAS": true,
+    "MULTIPLE_CAMERAS": false,
     "CAMERA_DIGITS": [0,1]  
 }

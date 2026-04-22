@@ -60,7 +60,7 @@ def split_stage_direction(text: str):
   # comma unpacks single element list
 
 
-
+#cedar
 def run(text_to_speak):
     if type(text_to_speak) == str:
         
@@ -74,7 +74,7 @@ def run(text_to_speak):
     
         with client.audio.speech.with_streaming_response.create(
             model="gpt-4o-mini-tts",
-            voice="coral",
+            voice="cedar",
             input=clean_text,
             instructions=f"Speak in a {given_instructions} tone"
         ) as response:
