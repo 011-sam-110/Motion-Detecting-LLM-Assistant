@@ -1,5 +1,6 @@
 #from src import speechToText
 import json
+import os
 import threading
 import time
 from datetime import datetime
@@ -42,7 +43,7 @@ def log(message: str, level: str = "INFO", function_name: str = ""):
 def getConfigSettings(settings : list):
     """"""
     returnedSettings = []
-    with open("C:\\Users\\sampo\\OneDrive\\Desktop\\Python projects\\Motion Detection AI\\src\\config.json") as file:
+    with open(os.path.join(os.path.dirname(__file__), "config.json")) as file:
         config = json.load(file)
         for setting in settings:
             returnedSettings.append(config[setting])

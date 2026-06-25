@@ -29,7 +29,7 @@ Webcam → Face Detected → LLM Prompt → TTS Response
 - **Multi-modal AI pipeline** — text generation, vision analysis, and speech synthesis all coordinated in a single loop
 - **Contextual awareness** — the agent takes and analyses a photo of the room if the user stops responding, then references what it sees
 - **Emotional speech synthesis** — stage directions in LLM output (`*whisper*`, `*angry*`) are parsed and forwarded as tone instructions to the TTS model
-- **Threaded architecture** — speech recognition, the lifetime timer, and the main conversation loop all run concurrently via Python's `threading` and `Queue` primitives
+- **Threaded architecture** — a background `threading` timer counts down the agent's lifetime alongside the main conversation loop, and speech recognition runs in a worker thread that hands its result back through a `Queue`
 - **Configurable** via `config.json` — LLM lifetime, camera selection (including multi-camera random selection), and talk speed
 
 ---
@@ -82,7 +82,7 @@ src/
 **Requirements:** Python 3.10+, an OpenAI API key, and a webcam.
 
 ```bash
-pip install openai opencv-python speechrecognition colorama python-vlc python-dotenv simpleaudio
+pip install openai opencv-python speechrecognition colorama python-vlc python-dotenv
 ```
 
 Add your API key to a `.env` file:
