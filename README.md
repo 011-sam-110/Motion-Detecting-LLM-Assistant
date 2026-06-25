@@ -1,18 +1,53 @@
-# Motion Detection AI Agent
+<h1 align="center">Motion-Detecting LLM Assistant</h1>
+<p align="center">An ambient AI agent that wakes when it sees a face, talks to you, and comments on the room when ignored.</p>
 
-An ambient AI agent that wakes up when it detects a human, holds a conversation, and uses its camera to observe the room when ignored. Built entirely in Python, it chains together real-time computer vision, large language models, speech recognition, and neural text-to-speech into a single autonomous loop.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white">
+  <img src="https://img.shields.io/badge/Vision-OpenCV-5C3EE8?logo=opencv&logoColor=white">
+  <img src="https://img.shields.io/badge/LLM-GPT--4o--mini-412991?logo=openai&logoColor=white">
+  <img src="https://img.shields.io/badge/TTS-OpenAI%20neural-412991?logo=openai&logoColor=white">
+</p>
 
----
+A single autonomous Python loop that chains real-time computer vision, an LLM, speech recognition,
+and neural text-to-speech. It sits idle watching a webcam; the moment a face appears it wakes up,
+introduces itself, and holds a spoken conversation. If you stop replying, it takes a photo, asks a
+vision model what it can see, and works that into its next line, before shutting itself down after a
+set lifetime and going back to watching.
 
-## How It Works
+## ✨ Features
+- **Face-triggered wake** — OpenCV Haar cascades with histogram equalisation (low-light robust) block until a face appears.
+- **Spoken conversation** — GPT-4o-mini replies in-character, read aloud with OpenAI neural TTS; Google Speech Recognition listens for your answer.
+- **Emotional speech** — stage directions in the LLM output (`*frustrated*`, `*whisper*`) are parsed and passed to the TTS model as tone instructions.
+- **Contextual awareness** — if you go quiet for two cycles it captures a photo, sends it to GPT-4.1-mini vision, and references what it sees.
+- **Threaded architecture** — a background timer counts down the agent's lifetime while speech recognition runs in a worker thread that hands results back through a `Queue`.
 
-1. **Face detection** runs continuously on a webcam feed. The moment a face appears, the agent wakes up.
-2. **GPT-4o-mini** generates a response in-character and sends it to the TTS pipeline.
-3. **OpenAI TTS** (`gpt-4o-mini-tts`) reads the response aloud, with emotional tone extracted from stage directions embedded in the LLM output (e.g. `*frustrated* "Why are you here again?"`).
-4. **Google Speech Recognition** listens for a reply. If the user responds, the conversation continues.
-5. **If the user goes quiet** for two cycles, the agent captures a photo, sends it to **GPT-4.1-mini vision**, gets a description of the scene, and uses that to craft a contextually-aware response — commenting on what it can see.
-6. After a configurable lifetime (default 5 minutes), the agent shuts itself down and returns to watching for motion.
+## 🛠 Stack
+| Area | Tech |
+|---|---|
+| Computer vision | OpenCV (`cv2`), Haar cascade |
+| LLM | OpenAI GPT-4o-mini |
+| Vision / scene | OpenAI GPT-4.1-mini (Files API) |
+| Text-to-speech | OpenAI `gpt-4o-mini-tts` |
+| Speech-to-text | Google Speech Recognition |
+| Concurrency | `threading`, `Queue` |
+| Audio / logs | `python-vlc`, `colorama` |
 
+## 🚀 Run
+Requirements: Python 3.10+, an OpenAI API key, and a webcam.
+```bash
+pip install openai opencv-python speechrecognition colorama python-vlc python-dotenv
+echo "OPENAI_API_KEY=your_key_here" > .env
+cd src && python main.py
+```
+The agent waits silently until it detects a face, then introduces itself. Tune behaviour in `src/config.json`:
+
+| Key | Description | Default |
+|---|---|---|
+| `LLM_LIFETIME` | seconds before the agent shuts down | `300` |
+| `MULTIPLE_CAMERAS` | randomly pick from a list of camera indices | `false` |
+| `CAMERA_DIGITS` | camera index or list of indices | `[0, 1]` |
+
+## 🧠 How it works
 ```
 Webcam → Face Detected → LLM Prompt → TTS Response
            ↑                               ↓
@@ -20,94 +55,12 @@ Webcam → Face Detected → LLM Prompt → TTS Response
            ↑
      (if silent) → Photo → Vision API → LLM re-prompts
 ```
+`src/` splits cleanly by responsibility: `detectFace.py` (blocks until a face is found),
+`newllm.py` (chat completions + persona prompts), `describeSetting.py` (vision scene description),
+`textToSpeech.py` (TTS + stage-direction parsing), `speechToText.py` (threaded STT), all
+orchestrated by `main.py`.
 
----
-
-## Key Features
-
-- **Real-time face detection** using OpenCV Haar cascades with histogram equalisation for low-light robustness
-- **Multi-modal AI pipeline** — text generation, vision analysis, and speech synthesis all coordinated in a single loop
-- **Contextual awareness** — the agent takes and analyses a photo of the room if the user stops responding, then references what it sees
-- **Emotional speech synthesis** — stage directions in LLM output (`*whisper*`, `*angry*`) are parsed and forwarded as tone instructions to the TTS model
-- **Threaded architecture** — a background `threading` timer counts down the agent's lifetime alongside the main conversation loop, and speech recognition runs in a worker thread that hands its result back through a `Queue`
-- **Configurable** via `config.json` — LLM lifetime, camera selection (including multi-camera random selection), and talk speed
-
----
-
-## Tech Stack
-
-| Area | Technology |
-|---|---|
-| Computer Vision | OpenCV (`cv2`), Haar Cascade Classifier |
-| LLM | OpenAI GPT-4o-mini |
-| Vision / Scene Analysis | OpenAI GPT-4.1-mini (vision) via Files API |
-| Text-to-Speech | OpenAI `gpt-4o-mini-tts` (neural TTS with emotional instructions) |
-| Speech-to-Text | Google Speech Recognition (`speech_recognition`) |
-| Concurrency | Python `threading`, `Queue` |
-| Audio Playback | `python-vlc` |
-| Config & Secrets | JSON config file, `python-dotenv` |
-| Logging | Colour-coded structured logs via `colorama` |
-
----
-
-## Skills Demonstrated
-
-- **Real-time computer vision** — live webcam processing, frame conversion, Haar cascade face detection
-- **LLM prompt engineering** — multi-personality system prompts, conversation history management, structured output parsing
-- **Multi-modal AI integration** — coordinating text, vision, and audio models in a single coherent pipeline
-- **Concurrent Python** — managing multiple threads safely with queues and shared state
-- **OpenAI API** — chat completions, vision (Files API), streaming TTS audio
-- **Audio I/O** — microphone capture with ambient noise adjustment, audio file streaming and playback
-- **System design** — event-driven architecture where each component hands off cleanly to the next
-
----
-
-## Project Structure
-
-```
-src/
-├── main.py            # Orchestration — main loop, threading, conversation history
-├── detectFace.py      # OpenCV face detection, blocks until a face is found
-├── newllm.py          # GPT-4o-mini chat completions, persona/system prompts
-├── describeSetting.py # GPT-4.1-mini vision — describes the room from a photo
-├── textToSpeech.py    # OpenAI TTS, stage direction parsing, audio playback
-├── speechToText.py    # Google STT, microphone capture, threaded queue interface
-└── config.json        # Runtime configuration (lifetime, camera index, etc.)
-```
-
----
-
-## Setup
-
-**Requirements:** Python 3.10+, an OpenAI API key, and a webcam.
-
-```bash
-pip install openai opencv-python speechrecognition colorama python-vlc python-dotenv
-```
-
-Add your API key to a `.env` file:
-
-```
-OPENAI_API_KEY=your_key_here
-```
-
-Run:
-
-```bash
-cd src
-python main.py
-```
-
-The agent will wait silently until it detects a face, then introduce itself.
-
----
-
-## Configuration
-
-Edit `src/config.json` to adjust behaviour:
-
-| Key | Description | Default |
-|---|---|---|
-| `LLM_LIFETIME` | Seconds before the agent shuts down | `300` |
-| `MULTIPLE_CAMERAS` | Randomly pick from a list of camera indices | `false` |
-| `CAMERA_DIGITS` | Camera index or list of indices | `[0, 1]` |
+## 🗺 Roadmap
+Runs locally; a personal computer-vision + LLM experiment.
+- [ ] Swap Google STT for a local recogniser to cut latency and the network dependency
+- Known limitation: needs an OpenAI API key and internet; conversation quality depends on the mic and ambient noise.
